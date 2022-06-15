@@ -3,6 +3,7 @@
  *  library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+ * Copyright (c) 2022 lecomte vm.lecomte@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,13 +23,6 @@
  */
 
 include ':libuvccamera'
-include ':usbCameraCommon'
-include ':usbCameraTest'
-include ':usbCameraTest0'
-include ':usbCameraTest2'
-include ':usbCameraTest3'
-include ':usbCameraTest4'
-include ':usbCameraTest5'
-include ':usbCameraTest6'
-include ':usbCameraTest7'
+include ':usbCamera'
 include ':usbCameraTest8'
+include ':usbCameraCommon'

@@ -31,7 +31,7 @@ import android.util.Log;
 import com.serenegiant.utils.HandlerThreadHandler;
 
 public abstract class BaseService extends Service {
-	private static boolean DEBUG = false;	// FIXME 実働時はfalseにセットすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにセットすること
 	private static final String TAG = BaseService.class.getSimpleName();
 
 	/** UI操作のためのHandler */

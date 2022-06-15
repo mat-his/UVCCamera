@@ -29,9 +29,9 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -39,6 +39,7 @@ import com.serenegiant.dialog.MessageDialogFragmentV4;
 import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.HandlerThreadHandler;
 import com.serenegiant.utils.PermissionCheck;
+import com.serenegiant.uvccamera.R;
 
 /**
  * Created by saki on 2016/11/18.
@@ -47,7 +48,7 @@ import com.serenegiant.utils.PermissionCheck;
 public class BaseActivity extends AppCompatActivity
 	implements MessageDialogFragmentV4.MessageDialogListener {
 
-	private static boolean DEBUG = false;	// FIXME 実働時はfalseにセットすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにセットすること
 	private static final String TAG = BaseActivity.class.getSimpleName();
 
 	/** UI操作のためのHandler */

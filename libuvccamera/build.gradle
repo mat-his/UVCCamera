@@ -1,4 +1,6 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
 /*
  *  UVCCamera
  *  library and sample to access to UVC web camera on non-rooted Android device
@@ -24,18 +26,38 @@ apply plugin: 'com.android.library'
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
+ext {
+	minSdkVersion = 21
+	ndkVersion = '24.0.8215888'
+	cmakeVersion = '3.18.1'
+	supportLibVersion = '27.1.1'  // variable that can be referenced to keep support libs consistent
+	commonLibVersion= '2.12.4'
+	versionBuildTool = '27.0.3'
+	versionCompiler = 32
+	versionTarget = 27
+	versionCode = 1
+	androidXVersion = '1.1.0'
+	appcompatVersion = "1.4.2"
+	versionNameString = '1.0.0'
+	javaSourceCompatibility = JavaVersion.VERSION_11
+	javaTargetCompatibility = JavaVersion.VERSION_11
+}
+
 android {
-	compileSdkVersion versionCompiler
-	buildToolsVersion versionBuildTool
+	compileSdkVersion project.ext.versionCompiler
 
 	compileOptions {
-		sourceCompatibility javaSourceCompatibility
-		targetCompatibility javaTargetCompatibility
+		sourceCompatibility project.ext.javaSourceCompatibility
+		targetCompatibility project.ext.javaTargetCompatibility
+	}
+
+	kotlinOptions {
+		jvmTarget = '11'
 	}
 
     defaultConfig {
-        minSdkVersion 14
-		targetSdkVersion versionTarget
+        minSdkVersion project.ext.minSdkVersion
+		targetSdkVersion project.ext.versionTarget
     }
 
     buildTypes {
@@ -50,6 +72,22 @@ android {
 			jni.srcDirs = []
 		}
 	}
+
+	// ndkVersion ndkVersion
+
+	externalNativeBuild {
+		cmake {
+			version project.ext.cmakeVersion
+		}
+	}
+}
+
+task wrapper(type: Wrapper){
+	gradleVersion = '7.4'
+}
+
+task prepareKotlinBuildScriptModel {
+
 }
 
 tasks.withType(JavaCompile) {
@@ -59,7 +97,7 @@ tasks.withType(JavaCompile) {
 String getNdkBuildPath() {
 	Properties properties = new Properties()
 	properties.load(project.rootProject.file('local.properties').newDataInputStream())
-	def ndkBuildingDir = properties.getProperty("ndk.dir")
+	def ndkBuildingDir = properties.getProperty("ndk.dir") + project.ext.ndkVersion
 	def ndkBuildPath = ndkBuildingDir
 	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 		ndkBuildPath = ndkBuildingDir + '/ndk-build.cmd'
@@ -71,25 +109,27 @@ String getNdkBuildPath() {
 
 task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
 	println('executing ndkBuild')
-	def ndkBuildPath = getNdkBuildPath();
-	commandLine ndkBuildPath, '-j8', '-C', file('src/main').absolutePath
+	def ndkBuildPath = getNdkBuildPath()
+	commandLine ndkBuildPath, '-C', file('src/main').absolutePath
 }
 
 task ndkClean(type: Exec, description: 'clean JNI libraries') {
 	println('executing ndkBuild clean')
-	def ndkBuildPath = getNdkBuildPath();
+	def ndkBuildPath = getNdkBuildPath()
 	commandLine ndkBuildPath, 'clean', '-C', file('src/main').absolutePath
 }
 
 clean.dependsOn 'ndkClean'
 
 dependencies {
-    implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
+    implementation fileTree(dir: 'libs', include: '*.jar')
 
-	implementation "com.android.support:support-v4:${supportLibVersion}"
-	implementation "com.android.support:support-annotations:${supportLibVersion}"
+	implementation "androidx.appcompat:appcompat:$appcompatVersion"
+	// For loading and tinting drawables on older versions of the platform
+	implementation "androidx.appcompat:appcompat-resources:$appcompatVersion"
+	// implementation "com.android.support:support-v4:${supportLibVersion}"
+	// implementation "com.android.support:support-annotations:${supportLibVersion}"
 
-	implementation("com.serenegiant:common:${commonLibVersion}") {
-		exclude module: 'support-v4'
-	}
+	implementation "androidx.core:core-ktx:1.8.0"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

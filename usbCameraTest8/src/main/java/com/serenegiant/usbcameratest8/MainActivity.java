@@ -27,7 +27,7 @@ import android.animation.Animator;
 import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.Surface;
 import android.view.View;
@@ -236,8 +236,7 @@ public final class MainActivity extends BaseActivity implements CameraDialog.Cam
 	private final OnLongClickListener mOnLongClickListener = new OnLongClickListener() {
 		@Override
 		public boolean onLongClick(final View view) {
-			switch (view.getId()) {
-			case R.id.camera_view:
+			if (view.getId() == R.id.camera_view) {
 				if (mCameraHandler.isOpened()) {
 					if (checkPermissionWriteExternalStorage()) {
 						mCameraHandler.captureStill();

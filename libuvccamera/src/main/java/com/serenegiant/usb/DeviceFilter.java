@@ -23,20 +23,20 @@
 
 package com.serenegiant.usb;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbInterface;
 import android.text.TextUtils;
 import android.util.Log;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class DeviceFilter {
 
@@ -476,14 +476,12 @@ public final class DeviceFilter {
 		}
 		if (obj instanceof UsbDevice) {
 			final UsbDevice device = (UsbDevice) obj;
-			if (isExclude
-					|| (device.getVendorId() != mVendorId)
-					|| (device.getProductId() != mProductId)
-					|| (device.getDeviceClass() != mClass)
-					|| (device.getDeviceSubclass() != mSubclass)
-					|| (device.getDeviceProtocol() != mProtocol) ) {
-				return false;
-			}
+            return !isExclude
+                    && (device.getVendorId() == mVendorId)
+                    && (device.getProductId() == mProductId)
+                    && (device.getDeviceClass() == mClass)
+                    && (device.getDeviceSubclass() == mSubclass)
+                    && (device.getDeviceProtocol() == mProtocol);
 /*			if ((mManufacturerName != null && device.getManufacturerName() == null)
 					|| (mManufacturerName == null && device
 							.getManufacturerName() != null)
@@ -501,8 +499,7 @@ public final class DeviceFilter {
 							.equals(device.getSerialNumber()))) {
 				return (false);
 			} */
-			return true;
-		}
+        }
 		return false;
 	}
 

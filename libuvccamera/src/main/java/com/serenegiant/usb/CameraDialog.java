@@ -23,9 +23,6 @@
 
 package com.serenegiant.usb;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -43,10 +40,10 @@ import android.widget.Button;
 import android.widget.CheckedTextView;
 import android.widget.Spinner;
 
-import com.serenegiant.usb.DeviceFilter;
-import com.serenegiant.usb.USBMonitor;
-
 import com.serenegiant.uvccamera.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CameraDialog extends DialogFragment {
 	private static final String TAG = CameraDialog.class.getSimpleName();
@@ -94,8 +91,8 @@ public class CameraDialog extends DialogFragment {
        if (mUSBMonitor == null)
         try {
     		mUSBMonitor = ((CameraDialogParent)activity).getUSBMonitor();
-        } catch (final ClassCastException e) {
-    	} catch (final NullPointerException e) {
+        } catch (final ClassCastException ignored) {
+    	} catch (final NullPointerException ignored) {
         }
 		if (mUSBMonitor == null) {
         	throw new ClassCastException(activity.toString() + " must implement CameraDialogParent#getUSBController");
@@ -157,10 +154,8 @@ public class CameraDialog extends DialogFragment {
 	private final OnClickListener mOnClickListener = new OnClickListener() {
 		@Override
 		public void onClick(final View v) {
-			switch (v.getId()) {
-			case android.R.id.button3:
+			if (v.getId() == android.R.id.button3) {
 				updateDevices();
-				break;
 			}
 		}
 	};

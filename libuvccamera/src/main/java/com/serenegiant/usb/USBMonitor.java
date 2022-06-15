@@ -23,26 +23,21 @@
 
 package com.serenegiant.usb;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
@@ -50,6 +45,23 @@ import android.util.SparseArray;
 
 import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.HandlerThreadHandler;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class USBMonitor {
 
@@ -71,7 +83,7 @@ public final class USBMonitor {
 	private final UsbManager mUsbManager;
 	private final OnDeviceConnectListener mOnDeviceConnectListener;
 	private PendingIntent mPermissionIntent = null;
-	private List<DeviceFilter> mDeviceFilters = new ArrayList<DeviceFilter>();
+	private final List<DeviceFilter> mDeviceFilters = new ArrayList<DeviceFilter>();
 
 	/**
 	 * コールバックをワーカースレッドで呼び出すためのハンドラー
@@ -170,6 +182,7 @@ public final class USBMonitor {
 				mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 				final IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 				// ACTION_USB_DEVICE_ATTACHED never comes on some devices so it should not be added here
+				filter.addAction(ACTION_USB_DEVICE_ATTACHED);
 				filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
 				context.registerReceiver(mUsbReceiver, filter);
 			}
@@ -296,23 +309,81 @@ public final class USBMonitor {
 	 */
 	public List<UsbDevice> getDeviceList(final List<DeviceFilter> filters) throws IllegalStateException {
 		if (destroyed) throw new IllegalStateException("already destroyed");
+		// get detected devices
 		final HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
+		// store those devices info before matching filter xml file
+		String fileName = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/USBCamera/failed_devices.txt";
+
+		File logFile = new File(fileName);
+		if(!logFile.getParentFile().exists()) {
+			logFile.getParentFile().mkdirs();
+		}
+
+		if(! logFile.exists()) {
+			try {
+				logFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		FileWriter fw = null;
+		PrintWriter pw = null;
+		try {
+			fw = new FileWriter(logFile, true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		if(fw != null) {
+			pw = new PrintWriter(fw);
+		}
 		final List<UsbDevice> result = new ArrayList<UsbDevice>();
 		if (deviceList != null) {
 			if ((filters == null) || filters.isEmpty()) {
 				result.addAll(deviceList.values());
 			} else {
 				for (final UsbDevice device: deviceList.values() ) {
+					// match devices
 					for (final DeviceFilter filter: filters) {
-						if ((filter != null) && filter.matches(device)) {
+						if ((filter != null) && filter.matches(device) || (filter != null && filter.mSubclass == device.getDeviceSubclass())) {
 							// when filter matches
 							if (!filter.isExclude) {
 								result.add(device);
 							}
 							break;
+						} else {
+							// collection failed dev's class and subclass
+							String devModel = android.os.Build.MODEL;
+							String devSystemVersion = android.os.Build.VERSION.RELEASE;
+							String devClass = String.valueOf(device.getDeviceClass());
+							String subClass = String.valueOf(device.getDeviceSubclass());
+							try{
+								if(pw != null) {
+									StringBuilder sb = new StringBuilder();
+									sb.append(devModel);
+									sb.append("/");
+									sb.append(devSystemVersion);
+									sb.append(":");
+									sb.append("class="+devClass+", subclass="+subClass);
+									pw.println(sb);
+									pw.flush();
+									fw.flush();
+								}
+							}catch (IOException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
+			}
+		}
+		if (pw != null) {
+			pw.close();
+		}
+		if (fw != null) {
+			try {
+				fw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 		return result;
@@ -368,7 +439,7 @@ public final class USBMonitor {
 					for (int i = 0; i < num_interface; i++) {
 						sb.append(String.format(Locale.US, "interface%d:%s", i, device.getInterface(i).toString()));
 					}
-					Log.i(TAG, "key=" + key + ":" + device + ":" + sb.toString());
+					Log.i(TAG, "key=" + key + ":" + device + ":" + sb);
 				}
 			} else {
 				Log.i(TAG, "no device");
@@ -660,7 +731,8 @@ public final class USBMonitor {
 		if (useNewAPI && BuildCheck.isAndroid5()) {
 			sb.append("#");
 			if (TextUtils.isEmpty(serial)) {
-				sb.append(device.getSerialNumber());	sb.append("#");	// API >= 21
+				try { sb.append(device.getSerialNumber());	sb.append("#");	} // API >= 21 & targetSdkVersion has to be <= 28
+				catch(SecurityException ignore) {}
 			}
 			sb.append(device.getManufacturerName());	sb.append("#");	// API >= 21
 			sb.append(device.getConfigurationCount());	sb.append("#");	// API >= 21
@@ -840,17 +912,13 @@ public final class USBMonitor {
 				(USB_DT_STRING << 8) | id, languages[i], work, 256, 0);
 			if ((ret > 2) && (work[0] == ret) && (work[1] == USB_DT_STRING)) {
 				// skip first two bytes(bLength & bDescriptorType), and copy the rest to the string
-				try {
-					result = new String(work, 2, ret - 2, "UTF-16LE");
-					if (!"Љ".equals(result)) {	// 変なゴミが返ってくる時がある
-						break;
-					} else {
-						result = null;
-					}
-				} catch (final UnsupportedEncodingException e) {
-					// ignore
-				}
-			}
+                result = new String(work, 2, ret - 2, StandardCharsets.UTF_16LE);
+                if (!"Љ".equals(result)) {	// 変なゴミが返ってくる時がある
+                    break;
+                } else {
+                    result = null;
+                }
+            }
 		}
 		return result;
 	}
@@ -882,6 +950,7 @@ public final class USBMonitor {
 	 * @param _info
 	 * @return
 	 */
+	@TargetApi(Build.VERSION_CODES.M)
 	public static UsbDeviceInfo updateDeviceInfo(final UsbManager manager, final UsbDevice device, final UsbDeviceInfo _info) {
 		final UsbDeviceInfo info = _info != null ? _info : new UsbDeviceInfo();
 		info.clear();
@@ -897,6 +966,9 @@ public final class USBMonitor {
 			}
 			if ((manager != null) && manager.hasPermission(device)) {
 				final UsbDeviceConnection connection = manager.openDevice(device);
+				if(connection == null) {
+					return null;
+				}
 				final byte[] desc = connection.getRawDescriptors();
 
 				if (TextUtils.isEmpty(info.usb_version)) {

@@ -23,10 +23,10 @@
 
 package com.serenegiant.usb;
 
-import java.util.Locale;
-
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.util.Locale;
 
 public class Size implements Parcelable {
 	//
@@ -289,7 +289,7 @@ public class Size implements Parcelable {
 		return String.format(Locale.US, "Size(%dx%d@%4.1f,type:%d,frame:%d,index:%d,%s)", width, height, frame_rate, type, frame_type, index, frameRates);
 	}
 
-	public static final Creator<Size> CREATOR = new Parcelable.Creator<Size>() {
+	public static final Creator<Size> CREATOR = new Creator<Size>() {
 		@Override
 		public Size createFromParcel(final Parcel source) {
 			return new Size(source);
