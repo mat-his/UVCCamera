@@ -5,10 +5,10 @@ android {
     compileSdkVersion versionCompiler
     defaultConfig {
         applicationId "com.jiangdg.usbcamera"  // TODO: namespace and appId to change
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.versionTarget
-        versionCode rootProject.ext.versionCode
-        versionName rootProject.ext.versionNameString
+        minSdkVersion minSdkVersion
+        targetSdkVersion versionTarget
+        versionCode versionCode
+        versionName versionNameString
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // "armeabi-v7a" can adapter most of the devices
@@ -24,8 +24,8 @@ android {
     }
     // solving com.android.tools.r8.CompilationFailedException: Compilation failed to complete
     compileOptions {
-        sourceCompatibility rootProject.ext.javaSourceCompatibility
-        targetCompatibility rootProject.ext.javaTargetCompatibility
+        sourceCompatibility javaSourceCompatibility
+        targetCompatibility javaTargetCompatibility
     }
 
     kotlinOptions {

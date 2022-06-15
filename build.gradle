@@ -33,7 +33,7 @@ ext {
 	ndkVersion = '24.0.8215888'
 	cmakeVersion = '3.18.1'
 	supportLibVersion = '27.1.1'  // variable that can be referenced to keep support libs consistent
-	commonLibVersion= '2.12.4'
+	commonLibVersion = '2.12.4'
 	// versionBuildTool = '27.0.3'
 	versionCompiler = 32
 	versionTarget = 27
@@ -43,4 +43,5 @@ ext {
 	versionNameString = '1.0.0'
 	javaSourceCompatibility = JavaVersion.VERSION_11
 	javaTargetCompatibility = JavaVersion.VERSION_11
+	libName = 'libuvccamera'
 }

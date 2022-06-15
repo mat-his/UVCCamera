@@ -27,6 +27,7 @@ bin/jarlist.cache
 
 # Local configuration file (sdk path, etc)
 local.properties
+github.properties
 
 # Eclipse project files
 .classpath

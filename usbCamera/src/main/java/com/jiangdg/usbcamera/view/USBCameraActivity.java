@@ -28,15 +28,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.jiangdg.usbcamera.application.MyApplication;
-import com.serenegiant.UVCCameraHelper;
-import com.serenegiant.usb.CameraDialog;
-import com.serenegiant.usb.Size;
-import com.serenegiant.usb.USBMonitor;
-import com.serenegiant.usb.common.AbstractUVCCameraHandler;
-import com.serenegiant.usb.encoder.RecordParams;
-import com.serenegiant.usb.widget.CameraViewInterface;
+import com.mlecomte.UVCCameraHelper;
+import com.mlecomte.usb.CameraDialog;
+import com.mlecomte.usb.Size;
+import com.mlecomte.usb.USBMonitor;
+import com.mlecomte.usb.common.AbstractUVCCameraHandler;
+import com.mlecomte.usb.encoder.RecordParams;
+import com.mlecomte.usb.widget.CameraViewInterface;
 import com.jiangdg.usbcamera.R;
-import com.serenegiant.utils.FileUtilsManager;
+import com.mlecomte.utils.FileUtilsManager;
 
 import java.util.ArrayList;
 import java.util.List;

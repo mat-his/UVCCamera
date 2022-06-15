@@ -2,7 +2,7 @@ package com.jiangdg.usbcamera.application;
 
 import android.app.Application;
 
-import com.serenegiant.UVCCameraHelper;
+import com.mlecomte.UVCCameraHelper;
 import com.jiangdg.usbcamera.utils.CrashHandler;
 
 /**application class

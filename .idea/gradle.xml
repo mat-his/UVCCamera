@@ -12,9 +12,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/libuvccamera" />
-            <option value="$PROJECT_DIR$/usbCamera" />
-            <option value="$PROJECT_DIR$/usbCameraCommon" />
-            <option value="$PROJECT_DIR$/usbCameraTest8" />
           </set>
         </option>
       </GradleProjectSettings>

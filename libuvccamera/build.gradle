@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'maven-publish'
 
 /*
  *  UVCCamera
@@ -26,38 +27,21 @@ apply plugin: 'kotlin-android'
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
-ext {
-	minSdkVersion = 21
-	ndkVersion = '24.0.8215888'
-	cmakeVersion = '3.18.1'
-	supportLibVersion = '27.1.1'  // variable that can be referenced to keep support libs consistent
-	commonLibVersion= '2.12.4'
-	versionBuildTool = '27.0.3'
-	versionCompiler = 32
-	versionTarget = 27
-	versionCode = 1
-	androidXVersion = '1.1.0'
-	appcompatVersion = "1.4.2"
-	versionNameString = '1.0.0'
-	javaSourceCompatibility = JavaVersion.VERSION_11
-	javaTargetCompatibility = JavaVersion.VERSION_11
-}
-
 android {
-	compileSdkVersion project.ext.versionCompiler
+    compileSdkVersion versionCompiler
 
-	compileOptions {
-		sourceCompatibility project.ext.javaSourceCompatibility
-		targetCompatibility project.ext.javaTargetCompatibility
-	}
+    compileOptions {
+        sourceCompatibility javaSourceCompatibility
+        targetCompatibility javaTargetCompatibility
+    }
 
-	kotlinOptions {
-		jvmTarget = '11'
-	}
+    kotlinOptions {
+        jvmTarget = '11'
+    }
 
     defaultConfig {
-        minSdkVersion project.ext.minSdkVersion
-		targetSdkVersion project.ext.versionTarget
+        minSdkVersion minSdkVersion
+        targetSdkVersion versionTarget
     }
 
     buildTypes {
@@ -66,24 +50,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-	sourceSets {
-		main {
-			jniLibs.srcDir 'src/main/libs'
-			jni.srcDirs = []
-		}
-	}
+    sourceSets {
+        main {
+            jniLibs.srcDir 'src/main/libs'
+            jni.srcDirs = []
+        }
+    }
 
-	// ndkVersion ndkVersion
+    // ndkVersion ndkVersion
 
-	externalNativeBuild {
-		cmake {
-			version project.ext.cmakeVersion
-		}
-	}
+    externalNativeBuild {
+        cmake {
+            version cmakeVersion
+        }
+    }
 }
 
-task wrapper(type: Wrapper){
-	gradleVersion = '7.4'
+task wrapper(type: Wrapper) {
+    gradleVersion = '7.4'
 }
 
 task prepareKotlinBuildScriptModel {
@@ -91,32 +75,32 @@ task prepareKotlinBuildScriptModel {
 }
 
 tasks.withType(JavaCompile) {
-	compileTask -> compileTask.dependsOn ndkBuild
+    compileTask -> compileTask.dependsOn ndkBuild
 }
 
 String getNdkBuildPath() {
-	Properties properties = new Properties()
-	properties.load(project.rootProject.file('local.properties').newDataInputStream())
-	def ndkBuildingDir = properties.getProperty("ndk.dir") + project.ext.ndkVersion
-	def ndkBuildPath = ndkBuildingDir
-	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-		ndkBuildPath = ndkBuildingDir + '/ndk-build.cmd'
-	} else {
-		ndkBuildPath = ndkBuildingDir + '/ndk-build'
-	}
-	return ndkBuildPath
+    Properties properties = new Properties()
+    properties.load(rootProject.file('local.properties').newDataInputStream())
+    def ndkBuildingDir = properties.getProperty("ndk.dir") + ndkVersion
+    def ndkBuildPath = ndkBuildingDir
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        ndkBuildPath = ndkBuildingDir + '/ndk-build.cmd'
+    } else {
+        ndkBuildPath = ndkBuildingDir + '/ndk-build'
+    }
+    return ndkBuildPath
 }
 
 task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
-	println('executing ndkBuild')
-	def ndkBuildPath = getNdkBuildPath()
-	commandLine ndkBuildPath, '-C', file('src/main').absolutePath
+    println('executing ndkBuild')
+    def ndkBuildPath = getNdkBuildPath()
+    commandLine ndkBuildPath, '-C', file('src/main').absolutePath
 }
 
 task ndkClean(type: Exec, description: 'clean JNI libraries') {
-	println('executing ndkBuild clean')
-	def ndkBuildPath = getNdkBuildPath()
-	commandLine ndkBuildPath, 'clean', '-C', file('src/main').absolutePath
+    println('executing ndkBuild clean')
+    def ndkBuildPath = getNdkBuildPath()
+    commandLine ndkBuildPath, 'clean', '-C', file('src/main').absolutePath
 }
 
 clean.dependsOn 'ndkClean'
@@ -124,12 +108,59 @@ clean.dependsOn 'ndkClean'
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
 
-	implementation "androidx.appcompat:appcompat:$appcompatVersion"
-	// For loading and tinting drawables on older versions of the platform
-	implementation "androidx.appcompat:appcompat-resources:$appcompatVersion"
-	// implementation "com.android.support:support-v4:${supportLibVersion}"
-	// implementation "com.android.support:support-annotations:${supportLibVersion}"
+    implementation "androidx.appcompat:appcompat:$appcompatVersion"
+    // For loading and tinting drawables on older versions of the platform
+    implementation "androidx.appcompat:appcompat-resources:$appcompatVersion"
 
-	implementation "androidx.core:core-ktx:1.8.0"
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "androidx.core:core-ktx:1.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier.set("sources")
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId "com.mlecomte"
+            artifactId libName
+            version "1.0.0"
+            artifact sourceJar
+            artifact "$buildDir/outputs/aar/${libName}-release.aar"
+
+            pom {
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    project.configurations.implementation.allDependencies.each {
+                        if (it.group != null || it.name != null || it.version != null || it.name == "unspecified") return
+
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def propsFile = rootProject.file('github.properties')
+            def props = new Properties()
+            props.load(new FileInputStream(propsFile))
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/m-lecomte/uvccamera/")
+            credentials {
+                username props['username']
+                password props['token']
+            }
+        }
+    }/*
+    singleVariant("release") {
+        withSourcesJar()
+        withJavadocJar()
+    }*/
 }

@@ -3,7 +3,6 @@
  *  library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
- * Copyright (c) 2022 lecomte vm.lecomte@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,5 +21,7 @@
  *  may have a different license, see the respective files.
  */
 
-include ':libuvccamera'
-// include ':usbCamera'
+package com.mlecomte.usb.encoder;
+
+public interface IAudioEncoder {
+}

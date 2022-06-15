@@ -9,7 +9,7 @@ import android.os.Environment;
 import android.os.Looper;
 import android.widget.Toast;
 
-import com.serenegiant.UVCCameraHelper;
+import com.mlecomte.UVCCameraHelper;
 import com.jiangdg.usbcamera.application.MyApplication;
 
 import java.io.File;
